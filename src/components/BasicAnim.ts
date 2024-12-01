@@ -2,12 +2,13 @@ import { BaseScene } from "@/scenes/BaseScene";
 import { BasicEffect } from "./BasicEffect";
 
 export class BasicAnim extends BasicEffect{
-    private timer: number;
-    private flen: number;
-    private frames: number;
-    private curFrame: number = 0;
-    private sprite: Phaser.GameObjects.Sprite;
-    private loop: boolean = false;
+    protected timer: number;
+    protected flen: number;
+    protected frames: number;
+    protected curFrame: number = 0;
+    protected sprite: Phaser.GameObjects.Sprite;
+    protected loop: boolean = false;
+    public holdLastFrame: boolean = false;
     constructor(scene: BaseScene, x: number, y: number, spr: string, nFrames: number, frameLen: number, alpha: number, loop: boolean = true, sFrame: number = 0, rotation: number = 0, origin: number[] = [0.5,0.5]){
         super(scene,x,y);
         this.sprite = new Phaser.GameObjects.Sprite(scene,0,0,spr);
@@ -21,6 +22,10 @@ export class BasicAnim extends BasicEffect{
         this.timer = this.flen;
     }
 
+    setFrame(n: number){
+        this.sprite.setFrame(n);
+    }
+
     tick(t: number, d: number){
         this.timer -= d;
         if(this.timer <= 0){
@@ -30,7 +35,10 @@ export class BasicAnim extends BasicEffect{
                 if(this.loop){
                     this.curFrame = 0;
                 } else {
-                    this.deleteFlag = true;
+                    this.curFrame = this.frames - 1;
+                    if(!this.holdLastFrame){
+                        this.deleteFlag = true;
+                    }
                 }
             }
             this.sprite.setFrame(this.curFrame);

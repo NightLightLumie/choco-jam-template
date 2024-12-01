@@ -5,6 +5,7 @@ import { Robot } from "./Robot";
 import { BasicAnim } from "./BasicAnim";
 import { Projectile } from "./Projectile";
 import { ProjectileData } from "./Projectile";
+import { Turret } from "./Turret";
 
 export class Head extends RobotSeg{
     public mySpr: Phaser.GameObjects.Image;
@@ -14,14 +15,15 @@ export class Head extends RobotSeg{
     //public scanArc: Phaser.GameObjects.Arc;
     //handle attacks
 
-    constructor(scene: GameScene, x: number, y: number, spr: string, owner: Robot){
-        super(scene,x,y, owner);
+    constructor(scene: GameScene, x: number, y: number, spr: string, owner: Robot, direction: number){
+        super(scene,x,y, owner, direction);
         this.scene = scene;
         this.mySpr = new Phaser.GameObjects.Image(scene,0,0,spr);
         this.mySpr.setOrigin(0.5,0.5);
         //this.scanArc = new Phaser.GameObjects.Arc(scene,0,0,1,-1,1,false,0xa6fff3,0.75);
         //this.scanArc.setVisible(false);
         this.add(this.mySpr);
+        this.myPartID = 0;
         /*
         this.myGraphics.clear();
         this.myGraphics.fillStyle(0xa6fff3, 0.9);
@@ -45,13 +47,13 @@ export class Head extends RobotSeg{
                 this.curSt = 0;
                 this.stVars = [0];
                 this.inAttackSequence = true;
-                this.scene.sound.play("takeoff", {volume:0.25});
+                this.scene.sound.play("takeoff", {volume:0.15});
                 break;
-            } case "laser_eyes": {
+            } case "laser_eye": {
                 this.animObjects.push(new BasicAnim(this.scene,-40,-10,"laser_eye",4,50,1,true,0,0,[0.5,0.5]));
                 this.add(this.animObjects[0]);
                 this.curSt = 0;
-                this.stVars = [250];
+                this.stVars = [650];
                 this.inAttackSequence = true;
                 break;
             } case "scan": {
@@ -61,6 +63,15 @@ export class Head extends RobotSeg{
                 this.curSt = 0;
                 this.inAttackSequence = true;
                 this.scene.sound.play("sonar", {volume: 0.35});
+                break;
+            } case "turret": {
+                let p = new Turret(this.scene,this.x+this.owner.x, this.y+this.owner.y-140,this,this.direction,[this.direction,this.scene.getActivePartID()]);
+                this.scene.sound.play("turret",{volume:1.25});
+                this.lockProgress = p.stateTracker;
+                this.familiars.push(p);
+                this.curSt = 0;
+                this.stVars = []
+                this.inAttackSequence = true;
                 break;
             } default: {
                 break;
@@ -77,11 +88,14 @@ export class Head extends RobotSeg{
             case "headbutt": {
                 this.processHeadbutt(t,d);
                 break;
-            } case "laser_eyes": {
+            } case "laser_eye": {
                 this.processLasers(t,d);
                 break;
             } case "scan": {
                 this.processScan(t,d);
+                break;
+            } case "turret": {
+                this.processTurret(t,d);
                 break;
             } default: {
                 break;
@@ -97,19 +111,20 @@ export class Head extends RobotSeg{
                     this.stVars = [250];
                     this.curSt = 1;
                     this.lockProgress = 1;
-                    let t = Math.atan2((this.scene.getTargetY()-(this.owner.y+this.initPos[1]-10)),(this.scene.getTargetX()-(this.owner.x+this.initPos[0]-48)));
+                    let tx = Math.atan2((this.scene.getTargetY()-(this.owner.y+this.initPos[1]-10)),(this.scene.getTargetX()-(this.owner.x+this.initPos[0]-48)));
                     this.scene.addProjectile(new Projectile(this.scene,(this.owner.x+this.initPos[0]-48),(this.owner.y+this.initPos[1]-10),
                     this,"laser",2,150,"laser",{
-                        vx: Math.cos(t)*2400,
-                        vy: Math.sin(t)*2400,
-                        rotation: t*(180/Math.PI),
+                        vx: Math.cos(tx)*3200,
+                        vy: Math.sin(tx)*3200,
+                        rotation: tx*(180/Math.PI),
                         direction: -1,
                         endx: this.scene.getTargetX(),
                         spin: 0,
                         wait: 0,
                         ax: 0,
                         ay: 0,
-                        origin: [0.75,0.5],     
+                        origin: [0.75,0.5],
+                        target: [this.direction, this.scene.getActivePartID()],     
                     }));
                     this.scene.sound.play("burstlaser", {volume: 0.25});
                 }
@@ -126,7 +141,7 @@ export class Head extends RobotSeg{
                         this.animObjects[0].setAlpha(this.stVars[0]/250);
                     }
 
-                } else if(this.lockProgress == 0) {
+                } else if(this.lockProgress <= 0) {
                     this.curSt = 2;
                     this.stVars = [700];
                 }
@@ -221,10 +236,37 @@ export class Head extends RobotSeg{
         }
     }
 
+    processTurret(t: number, d: number){
+        switch(this.curSt){
+            case 0: {
+                if(this.lockProgress <= 0) {
+                    this.curSt = 1;
+                    this.stVars = [100];
+                    this.clearFamiliars();
+                }
+                break;
+            } case 1: {
+                this.stVars[0] -= d;
+                if(this.stVars[0] <= 0) {
+                    this.curSt = 0;
+                    this.stVars = [];
+                    this.lockProgress = 0;
+                    this.inAttackSequence = false;
+                }
+                break;
+            } default: {
+                break;
+            }
+        }
+    }
+
     inform(tag: string){
         switch(tag){
             case "laser": {
                 this.lockProgress = 0;
+                break;
+            } case "turret": {
+                this.lockProgress -= 1;
                 break;
             } default: {
                 break;
@@ -247,7 +289,7 @@ export class Head extends RobotSeg{
             } case 1: {
                 this.y += 3200*(d/1000);
                 if((this.y+this.owner.y) > (this.owner.getEnemyY()-160)){
-                    this.scene.sound.play("pan", {volume: 0.1});
+                    this.scene.sound.play("bonk", {volume: 1});
                     this.stVars=[this.x-this.initPos[0],this.y-this.initPos[1],1,1];
                     this.curSt = 2;
                 }

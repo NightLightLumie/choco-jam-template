@@ -13,6 +13,7 @@ export class ProjectileData {
     ax: number;
     ay: number;
     origin: number[];
+    target: number[];
 
 }
 
@@ -23,8 +24,9 @@ export class Projectile extends Phaser.GameObjects.Container{
     public ID: string;
     public deleteFlag: boolean = false;
     public scene: GameScene;
-    public curScale: number = 0.05;
-    public scaleTimer: number = 1000;
+    protected curScale: number = 0.05;
+    protected scaleTimer: number = 1000;
+    protected hitFlag: boolean = false;
     public pD: ProjectileData = {
         vx: 0,
         vy: 0,
@@ -35,9 +37,10 @@ export class Projectile extends Phaser.GameObjects.Container{
         wait: 0,
         ax: 0,
         ay: 0,
-        origin: [0.5,0.5],        
+        origin: [0.5,0.5], 
+        target: [-1,0],       
     }
-    constructor(scene: GameScene, x: number, y: number, owner: RobotSeg, spr: string, nframes: number, scaleTime: number, ID: string, pdata: ProjectileData){
+    constructor(scene: GameScene, x: number, y: number, owner: RobotSeg, spr: string, nframes: number, scaleTime: number, ID: string, pdata: ProjectileData, acc: number = 1){
         super(scene,x,y);
         this.scene = scene;
         this.owner = owner;
@@ -50,6 +53,9 @@ export class Projectile extends Phaser.GameObjects.Container{
         this.spr.setScale(0.05,1);
         this.cloneData(pdata);
         this.setAngle(this.pD.rotation);
+
+        //console.log("X TARGET: " + pdata.endx);
+        //console.log("OBJ TARGET: " + pdata.target);
     }
 
     cloneData(p: ProjectileData){
@@ -63,6 +69,7 @@ export class Projectile extends Phaser.GameObjects.Container{
         this.pD.ax = p.ax;
         this.pD.ay = p.ay;
         this.pD.origin = p.origin;
+        this.pD.target = p.target;
     }
 
     tick(t: number, d: number){
@@ -75,6 +82,9 @@ export class Projectile extends Phaser.GameObjects.Container{
             }
             this.spr.setScale(this.curScale,1);
         }
+        if(this.pD.spin != 0){
+            this.spr.setAngle(this.spr.angle+(this.pD.spin*(d/1000)));
+        }
         this.spr.tick(t, d);
         this.x += this.pD.vx*(d/1000);
         this.y += this.pD.vy*(d/1000);
@@ -82,17 +92,19 @@ export class Projectile extends Phaser.GameObjects.Container{
             case 1: {
                 if(this.x > this.pD.endx) {
                     this.owner.inform(this.ID);
-                    this.scene.informHit(this.ID);
+                    this.scene.informHitByPart(this.ID, this.pD.target);
                     this.deleteFlag = true;
-                    return;
+                    break;
                 }
             } case -1: {
                 if(this.x < this.pD.endx) {
                     this.owner.inform(this.ID);
-                    this.scene.informHit(this.ID);
+                    this.scene.informHitByPart(this.ID, this.pD.target);
                     this.deleteFlag = true;
-                    return;
+                    break;
                 }
+            } default: {
+                break;
             }
         }
     }

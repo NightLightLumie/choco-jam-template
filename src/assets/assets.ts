@@ -5,6 +5,8 @@ import { image, sound, music, loadFont, spritesheet } from './util';
 const images: Image[] = [
 	// Backgrounds
 	image('backgrounds/background', 'background'),
+	image('backgrounds/bkgbuild', 'bkgbuild'),
+	image('backgrounds/blank_bkg', 'blank_bkg'),
 
 	// Characters
 	image('characters/player', 'player'),
@@ -16,6 +18,10 @@ const images: Image[] = [
 
 	// Items
 	image('items/coin', 'coin'),
+	image('items/next_scene_button', 'next_scene_button'),
+	image('items/rip', 'rip'),
+	image('items/sbullet', 'sbullet'),
+	image('items/bee', 'bee'),
 
 	// UI
 	image('ui/hud', 'hud'),
@@ -46,7 +52,16 @@ const spritesheets: SpriteSheet[] = [
 	spritesheet("effects/explosion_red", "explosion_red", 256, 256),
 	spritesheet("effects/laser", "laser", 240, 80),
 	spritesheet("effects/lasersmall", "lasersmall", 30, 80),
-
+	spritesheet("effects/fireball", "fireball", 256, 128),
+	spritesheet("effects/flare", "flare", 256, 256),
+	spritesheet("effects/saw", "saw", 256, 256),
+	spritesheet("effects/door", "door", 256, 256),
+	spritesheet("effects/katana", "katana", 256, 128),
+	spritesheet("effects/sqbutton", "sqbutton", 256, 184),
+	spritesheet("effects/tbase", "tbase", 256, 256),
+	spritesheet("effects/tgun", "tgun", 256, 256),
+	spritesheet("effects/pan", "pan", 450, 450),
+	spritesheet("effects/beelaser", "beelaser", 960, 300),
 ];
 
 /* Audios */
@@ -59,6 +74,21 @@ const audios: Audio[] = [
 	sound('burstlaser', 'burstlaser', 0.5),
 	sound('takeoff', 'takeoff', 0.5),
 	sound('sonar', 'sonar', 0.5),
+	sound('punch', 'punch', 0.5),
+	sound('bigfire', 'bigfire', 0.5),
+	sound('fireblast', 'fireblast', 0.5),
+	sound('saw', 'saw', 0.5),
+	sound('katana', 'katana', 0.5),
+	sound('scroll', 'scroll', 0.5),
+	sound('place', 'place', 0.5),
+	sound('gun', 'gun', 0.5),
+	sound('hit', 'hit', 0.5),
+	sound('panthrow', 'panthrow', 0.5),
+	sound('crit', 'crit', 0.5),
+	sound('bees', 'bees', 0.5),
+	sound('door', 'door', 0.5),
+	sound('bonk', 'bonk', 0.5),
+	sound('turret', 'turret', 0.5),
 ];
 
 /* Fonts */
